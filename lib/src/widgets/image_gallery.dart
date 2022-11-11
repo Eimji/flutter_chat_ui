@@ -42,8 +42,7 @@ class ImageGallery extends StatelessWidget {
           child: Stack(
             children: [
               PhotoViewGallery.builder(
-                builder: (BuildContext context, int index) =>
-                    PhotoViewGalleryPageOptions(
+                builder: (BuildContext context, int index) => PhotoViewGalleryPageOptions(
                   imageProvider: Conditional().getProvider(
                     images[index].uri,
                     headers: imageHeaders,
@@ -52,19 +51,23 @@ class ImageGallery extends StatelessWidget {
                   maxScale: options.maxScale,
                 ),
                 itemCount: images.length,
-                loadingBuilder: (context, event) =>
-                    _imageGalleryLoadingBuilder(event),
+                loadingBuilder: (context, event) => _imageGalleryLoadingBuilder(event),
                 pageController: pageController,
                 scrollPhysics: const ClampingScrollPhysics(),
               ),
               Positioned.directional(
-                end: 16,
+                end: options.closeBtnEndPosition,
                 textDirection: Directionality.of(context),
-                top: 56,
-                child: CloseButton(
-                  color: Colors.white,
-                  onPressed: onClosePressed,
-                ),
+                top: options.closeBtnTopPosition,
+                child: options.closeBtnIcon == null
+                    ? CloseButton(
+                        color: options.closeBtnColor,
+                        onPressed: onClosePressed,
+                      )
+                    : IconButton(
+                        icon: options.closeBtnIcon!,
+                        onPressed: onClosePressed,
+                      ),
               ),
             ],
           ),
@@ -76,9 +79,7 @@ class ImageGallery extends StatelessWidget {
           width: 20,
           height: 20,
           child: CircularProgressIndicator(
-            value: event == null || event.expectedTotalBytes == null
-                ? 0
-                : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
+            value: event == null || event.expectedTotalBytes == null ? 0 : event.cumulativeBytesLoaded / event.expectedTotalBytes!,
           ),
         ),
       );
@@ -88,6 +89,10 @@ class ImageGalleryOptions {
   const ImageGalleryOptions({
     this.maxScale,
     this.minScale,
+    this.closeBtnEndPosition = 16,
+    this.closeBtnTopPosition = 56,
+    this.closeBtnColor = Colors.white,
+    this.closeBtnIcon,
   });
 
   /// See [PhotoViewGalleryPageOptions.maxScale].
@@ -95,4 +100,18 @@ class ImageGalleryOptions {
 
   /// See [PhotoViewGalleryPageOptions.minScale].
   final dynamic minScale;
+
+  /// End position for the close button in the image gallery view.
+  /// See [ImageGallery]
+  final double closeBtnEndPosition;
+
+  /// Top position for the close button in the image gallery view.
+  /// See [ImageGallery]
+  final double closeBtnTopPosition;
+
+  /// Color for the default close button.
+  final Color closeBtnColor;
+
+  /// Icon used for the close button.
+  final Icon? closeBtnIcon;
 }
