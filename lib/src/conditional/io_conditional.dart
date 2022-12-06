@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 import 'base_conditional.dart';
 
@@ -16,7 +17,7 @@ class IOConditional extends BaseConditional {
   @override
   ImageProvider getProvider(String uri, {Map<String, String>? headers}) {
     if (uri.startsWith('http')) {
-      return NetworkImage(uri, headers: headers);
+      return CachedNetworkImageProvider(uri, headers: headers);
     } else {
       return FileImage(File(uri));
     }

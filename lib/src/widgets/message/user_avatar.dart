@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/bubble_rtl_alignment.dart';
 import '../../util.dart';
@@ -45,17 +46,23 @@ class UserAvatar extends StatelessWidget {
       margin: bubbleRtlAlignment == BubbleRtlAlignment.left ? const EdgeInsetsDirectional.only(end: 8) : const EdgeInsets.only(right: 8),
       child: GestureDetector(
         onTap: () => onAvatarTap?.call(author),
-        child: CircleAvatar(
-          backgroundColor: hasImage ? InheritedChatTheme.of(context).theme.userAvatarImageBackgroundColor : color,
-          backgroundImage: hasImage ? NetworkImage(author.imageUrl!, headers: imageHeaders) : null,
-          radius: 16,
-          child: !hasImage
-              ? Text(
-                  initials,
-                  style: InheritedChatTheme.of(context).theme.userAvatarTextStyle,
-                )
-              : null,
-        ),
+        child: (author.imageUrl?.startsWith('assets/') ?? false)
+            ? Image.asset(
+                author.imageUrl!,
+                width: 32,
+                height: 32,
+              )
+            : CircleAvatar(
+                backgroundColor: hasImage ? InheritedChatTheme.of(context).theme.userAvatarImageBackgroundColor : color,
+                backgroundImage: hasImage ? CachedNetworkImageProvider(author.imageUrl!, headers: imageHeaders) : null,
+                radius: 16,
+                child: !hasImage
+                    ? Text(
+                        initials,
+                        style: InheritedChatTheme.of(context).theme.userAvatarTextStyle,
+                      )
+                    : null,
+              ),
       ),
     );
   }

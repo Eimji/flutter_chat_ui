@@ -43,6 +43,7 @@ class Chat extends StatefulWidget {
     this.customDateHeaderText,
     this.customMessageBuilder,
     this.customStatusBuilder,
+    this.secondarySendWidget,
     this.dateFormat,
     this.dateHeaderBuilder,
     this.dateHeaderThreshold = 900000,
@@ -81,6 +82,7 @@ class Chat extends StatefulWidget {
     this.onMessageVisibilityChanged,
     this.onPreviewDataFetched,
     required this.onSendPressed,
+    this.onSecondarySendPressed,
     this.scrollController,
     this.scrollPhysics,
     this.scrollToUnreadOptions = const ScrollToUnreadOptions(),
@@ -144,6 +146,9 @@ class Chat extends StatefulWidget {
 
   /// See [Message.customStatusBuilder].
   final Widget Function(types.Message message, {required BuildContext context})? customStatusBuilder;
+
+  /// You can add a secondary send widget in the input text field.
+  final Widget? secondarySendWidget;
 
   /// Allows you to customize the date format. IMPORTANT: only for the date,
   /// do not return time here. See [timeFormat] to customize the time format.
@@ -265,6 +270,9 @@ class Chat extends StatefulWidget {
 
   /// See [Input.onSendPressed].
   final void Function(types.PartialText) onSendPressed;
+
+  /// See [Input.onSecondarySendPressed].
+  final void Function(types.PartialText)? onSecondarySendPressed;
 
   /// See [ChatList.scrollController].
   /// If provided, you cannot use the scroll to message functionality.
@@ -461,6 +469,8 @@ class ChatState extends State<Chat> {
                             onSendPressed: widget.onSendPressed,
                             options: widget.inputOptions,
                             customAttachmentWidget: widget.customAttachmentWidget,
+                            secondarySendWidget: widget.secondarySendWidget,
+                            onSecondarySendPressed: widget.onSecondarySendPressed,
                           ),
                     ],
                   ),

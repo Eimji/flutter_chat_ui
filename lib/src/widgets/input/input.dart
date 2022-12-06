@@ -22,6 +22,8 @@ class Input extends StatefulWidget {
     required this.onSendPressed,
     this.options = const InputOptions(),
     this.customAttachmentWidget,
+    this.secondarySendWidget,
+    this.onSecondarySendPressed,
   });
 
   /// Whether attachment is uploading. Will replace attachment button with a
@@ -43,6 +45,13 @@ class Input extends StatefulWidget {
   /// Allows you to only replace the default Attachment widget
   /// without recreating the bottom widget.
   final Widget? customAttachmentWidget;
+
+  /// You can add a secondary send widget in the input text field.
+  final Widget? secondarySendWidget;
+
+  /// Will be called on [secondarySendWidget] tap. Has [types.PartialText] which can
+  /// be transformed to [types.TextMessage] and added to the messages list.
+  final void Function(types.PartialText)? onSecondarySendPressed;
 
   @override
   State<Input> createState() => _InputState();
@@ -125,6 +134,20 @@ class _InputState extends State<Input> {
     }
   }
 
+  void _handleSecondarySendPressed() {
+    if (widget.onSecondarySendPressed != null) {
+      final trimmedText = _textController.text.trim();
+      if (trimmedText != '') {
+        final partialText = types.PartialText(text: trimmedText);
+        widget.onSecondarySendPressed!(partialText);
+
+        if (widget.options.inputClearMode == InputClearMode.always) {
+          _textController.clear();
+        }
+      }
+    }
+  }
+
   void _handleTextControllerChange() {
     setState(() {
       _sendButtonVisible = _textController.text.trim() != '';
@@ -202,6 +225,19 @@ class _InputState extends State<Input> {
                           ),
                         ),
                       ),
+                      if (widget.secondarySendWidget != null)
+                        ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: buttonPadding.bottom + buttonPadding.top + 24,
+                          ),
+                          child: Visibility(
+                            visible: _sendButtonVisible,
+                            child: IconButton(
+                              icon: widget.secondarySendWidget!,
+                              onPressed: _handleSecondarySendPressed,
+                            ),
+                          ),
+                        ),
                       ConstrainedBox(
                         constraints: BoxConstraints(
                           minHeight: buttonPadding.bottom + buttonPadding.top + 24,
