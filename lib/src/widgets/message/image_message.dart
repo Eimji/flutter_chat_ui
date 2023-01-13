@@ -111,12 +111,8 @@ class _ImageMessageState extends State<ImageMessage> {
                     Text(
                       widget.message.name,
                       style: user.id == widget.message.author.id
-                          ? InheritedChatTheme.of(context)
-                              .theme
-                              .sentMessageBodyTextStyle
-                          : InheritedChatTheme.of(context)
-                              .theme
-                              .receivedMessageBodyTextStyle,
+                          ? InheritedChatTheme.of(context).theme.sentMessageBodyTextStyle
+                          : InheritedChatTheme.of(context).theme.receivedMessageBodyTextStyle,
                       textWidthBasis: TextWidthBasis.longestLine,
                     ),
                     Container(
@@ -126,12 +122,8 @@ class _ImageMessageState extends State<ImageMessage> {
                       child: Text(
                         formatBytes(widget.message.size.truncate()),
                         style: user.id == widget.message.author.id
-                            ? InheritedChatTheme.of(context)
-                                .theme
-                                .sentMessageCaptionTextStyle
-                            : InheritedChatTheme.of(context)
-                                .theme
-                                .receivedMessageCaptionTextStyle,
+                            ? InheritedChatTheme.of(context).theme.sentMessageCaptionTextStyle
+                            : InheritedChatTheme.of(context).theme.receivedMessageCaptionTextStyle,
                       ),
                     ),
                   ],
@@ -150,7 +142,7 @@ class _ImageMessageState extends State<ImageMessage> {
         child: AspectRatio(
           aspectRatio: _size.aspectRatio > 0 ? _size.aspectRatio : 1,
           child: Image(
-            fit: BoxFit.contain,
+            fit: BoxFit.cover,
             image: _image!,
           ),
         ),

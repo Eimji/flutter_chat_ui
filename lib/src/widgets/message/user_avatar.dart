@@ -1,6 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
-import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../models/bubble_rtl_alignment.dart';
 import '../../util.dart';

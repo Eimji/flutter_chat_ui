@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:visibility_detector/visibility_detector.dart';
 
+import '../../chat_theme.dart';
 import '../../models/bubble_rtl_alignment.dart';
 import '../../models/emoji_enlargement_behavior.dart';
 import '../../util.dart';
@@ -175,6 +176,7 @@ class Message extends StatelessWidget {
     final query = MediaQuery.of(context);
     final user = InheritedUser.of(context).user;
     final currentUserIsAuthor = user.id == message.author.id;
+    final isGameBot = message.author.imageUrl?.startsWith('assets/') ?? false;
     final enlargeEmojis = emojiEnlargementBehavior != EmojiEnlargementBehavior.never &&
         message is types.TextMessage &&
         isConsistsOfEmojis(
@@ -252,6 +254,7 @@ class Message extends StatelessWidget {
                             borderRadius.resolve(Directionality.of(context)),
                             currentUserIsAuthor,
                             enlargeEmojis,
+                            isGameBot: isGameBot,
                           ),
                         )
                       : _bubbleBuilder(
@@ -259,6 +262,7 @@ class Message extends StatelessWidget {
                           borderRadius.resolve(Directionality.of(context)),
                           currentUserIsAuthor,
                           enlargeEmojis,
+                          isGameBot: isGameBot,
                         ),
                 ),
               ],
@@ -295,30 +299,31 @@ class Message extends StatelessWidget {
     BuildContext context,
     BorderRadius borderRadius,
     bool currentUserIsAuthor,
-    bool enlargeEmojis,
-  ) =>
+    bool enlargeEmojis, {
+    bool isGameBot = false,
+  }) =>
       bubbleBuilder != null
           ? bubbleBuilder!(
-              _messageBuilder(),
+              _messageBuilder(isGameBot: isGameBot),
               message: message,
               nextMessageInGroup: roundBorder,
             )
           : enlargeEmojis && hideBackgroundOnEmojiMessages
-              ? _messageBuilder()
+              ? _messageBuilder(isGameBot: isGameBot)
               : Container(
                   decoration: BoxDecoration(
                     borderRadius: borderRadius,
                     color: !currentUserIsAuthor || message.type == types.MessageType.image
-                        ? InheritedChatTheme.of(context).theme.secondaryColor
+                        ? (isGameBot ? primary : InheritedChatTheme.of(context).theme.secondaryColor)
                         : InheritedChatTheme.of(context).theme.primaryColor,
                   ),
                   child: ClipRRect(
                     borderRadius: borderRadius,
-                    child: _messageBuilder(),
+                    child: _messageBuilder(isGameBot: isGameBot),
                   ),
                 );
 
-  Widget _messageBuilder() {
+  Widget _messageBuilder({bool isGameBot = false}) {
     switch (message.type) {
       case types.MessageType.audio:
         final audioMessage = message as types.AudioMessage;
@@ -356,6 +361,7 @@ class Message extends StatelessWidget {
                 showName: showName,
                 usePreviewData: usePreviewData,
                 userAgent: userAgent,
+                isGameBot: isGameBot,
               );
       case types.MessageType.video:
         final videoMessage = message as types.VideoMessage;
