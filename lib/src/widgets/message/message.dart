@@ -23,7 +23,6 @@ class Message extends StatelessWidget {
     super.key,
     this.audioMessageBuilder,
     this.avatarBuilder,
-    this.avatarInitialsBuilder,
     this.bubbleBuilder,
     this.bubbleRtlAlignment,
     this.customMessageBuilder,
@@ -62,9 +61,6 @@ class Message extends StatelessWidget {
   /// This is to allow custom user avatar builder
   /// By using this we can fetch newest user info based on id
   final Widget Function(String userId)? avatarBuilder;
-
-  /// Allow you to define the custom initials for avatars.
-  final String Function(types.User user)? avatarInitialsBuilder;
 
   /// Customize the default bubble using this function. `child` is a content
   /// you should render inside your bubble, `message` is a current message
@@ -290,7 +286,6 @@ class Message extends StatelessWidget {
             author: message.author,
             bubbleRtlAlignment: bubbleRtlAlignment,
             imageHeaders: imageHeaders,
-            avatarInitialsBuilder: avatarInitialsBuilder,
             onAvatarTap: onAvatarTap,
           )
       : const SizedBox(width: 40);

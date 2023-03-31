@@ -14,7 +14,6 @@ class UserAvatar extends StatelessWidget {
     required this.author,
     this.bubbleRtlAlignment,
     this.imageHeaders,
-    this.avatarInitialsBuilder,
     this.onAvatarTap,
   });
 
@@ -27,9 +26,6 @@ class UserAvatar extends StatelessWidget {
   /// See [Chat.imageHeaders].
   final Map<String, String>? imageHeaders;
 
-  /// Allow you to define the custom initials for avatars.
-  final String Function(types.User user)? avatarInitialsBuilder;
-
   /// Called when user taps on an avatar.
   final void Function(types.User)? onAvatarTap;
 
@@ -40,7 +36,7 @@ class UserAvatar extends StatelessWidget {
       InheritedChatTheme.of(context).theme.userAvatarNameColors,
     );
     final hasImage = author.imageUrl != null;
-    final initials = avatarInitialsBuilder != null ? avatarInitialsBuilder!(author) : getUserInitials(author);
+    final initials = getUserInitials(author);
 
     return Container(
       margin: bubbleRtlAlignment == BubbleRtlAlignment.left ? const EdgeInsetsDirectional.only(end: 8) : const EdgeInsets.only(right: 8),

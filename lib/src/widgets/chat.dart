@@ -35,7 +35,6 @@ class Chat extends StatefulWidget {
     super.key,
     this.audioMessageBuilder,
     this.avatarBuilder,
-    this.avatarInitialsBuilder,
     this.bubbleBuilder,
     this.bubbleRtlAlignment = BubbleRtlAlignment.right,
     this.customBottomWidget,
@@ -106,9 +105,6 @@ class Chat extends StatefulWidget {
 
   /// See [Message.avatarBuilder].
   final Widget Function(String userId)? avatarBuilder;
-
-  /// See [Message.avatarInitialsBuilder].
-  final String Function(types.User user)? avatarInitialsBuilder;
 
   /// See [Message.bubbleBuilder].
   final Widget Function(
@@ -561,7 +557,6 @@ class ChatState extends State<Chat> {
         messageWidget = Message(
           audioMessageBuilder: widget.audioMessageBuilder,
           avatarBuilder: widget.avatarBuilder,
-          avatarInitialsBuilder: widget.avatarInitialsBuilder,
           bubbleBuilder: widget.bubbleBuilder,
           bubbleRtlAlignment: widget.bubbleRtlAlignment,
           customMessageBuilder: widget.customMessageBuilder,
