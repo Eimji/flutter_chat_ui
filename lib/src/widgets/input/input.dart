@@ -204,6 +204,9 @@ class _InputState extends State<Input> {
                         child: Padding(
                           padding: textPadding,
                           child: TextField(
+                            enabled: widget.options.enabled,
+                            autocorrect: widget.options.autocorrect,
+                            enableSuggestions: widget.options.enableSuggestions,
                             controller: _textController,
                             cursorColor: InheritedChatTheme.of(context).theme.inputTextCursorColor,
                             decoration: InheritedChatTheme.of(context).theme.inputTextDecoration.copyWith(
