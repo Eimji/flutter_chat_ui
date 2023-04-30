@@ -409,6 +409,12 @@ class ChatState extends State<Chat> {
         duration: duration ?? scrollAnimationDuration,
       );
 
+  /// Scroll to the last received message.
+  void scrollToLastReceivedMessage({Duration? duration}) => _scrollController.scrollToIndex(
+        0,
+        duration: duration ?? scrollAnimationDuration,
+      );
+
   @override
   Widget build(BuildContext context) => InheritedUser(
         user: widget.user,
