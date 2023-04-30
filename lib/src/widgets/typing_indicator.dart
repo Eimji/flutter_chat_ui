@@ -25,8 +25,7 @@ class TypingIndicator extends StatefulWidget {
   State<TypingIndicator> createState() => _TypingIndicatorState();
 }
 
-class _TypingIndicatorState extends State<TypingIndicator>
-    with TickerProviderStateMixin {
+class _TypingIndicatorState extends State<TypingIndicator> with TickerProviderStateMixin {
   late double stackingWidth;
   late AnimationController _appearanceController;
   late AnimationController _animatedCirclesController;
@@ -108,17 +107,17 @@ class _TypingIndicatorState extends State<TypingIndicator>
           child: child,
         ),
         child: Row(
-          mainAxisAlignment: widget.bubbleAlignment == BubbleRtlAlignment.right
-              ? MainAxisAlignment.start
-              : MainAxisAlignment.end,
+          mainAxisAlignment: widget.bubbleAlignment == BubbleRtlAlignment.right ? MainAxisAlignment.start : MainAxisAlignment.end,
           children: <Widget>[
             widget.bubbleAlignment == BubbleRtlAlignment.left
-                ? Container(
-                    margin: const EdgeInsets.only(right: 12),
-                    child: TypingWidget(
-                      widget: widget,
-                      context: context,
-                      mode: widget.options.typingMode,
+                ? Flexible(
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 24, right: 12),
+                      child: TypingWidget(
+                        widget: widget,
+                        context: context,
+                        options: widget.options,
+                      ),
                     ),
                   )
                 : const SizedBox(),
@@ -127,49 +126,36 @@ class _TypingIndicatorState extends State<TypingIndicator>
                   ? const EdgeInsets.fromLTRB(24, 24, 0, 24)
                   : const EdgeInsets.fromLTRB(0, 24, 24, 24),
               decoration: BoxDecoration(
-                borderRadius: InheritedChatTheme.of(context)
-                    .theme
-                    .typingIndicatorTheme
-                    .bubbleBorder,
-                color: InheritedChatTheme.of(context)
-                    .theme
-                    .typingIndicatorTheme
-                    .bubbleColor,
+                borderRadius: InheritedChatTheme.of(context).theme.typingIndicatorTheme.bubbleBorder,
+                color: InheritedChatTheme.of(context).theme.typingIndicatorTheme.bubbleColor,
               ),
               child: Wrap(
                 spacing: 3.0,
                 children: <Widget>[
                   AnimatedCircles(
-                    circlesColor: InheritedChatTheme.of(context)
-                        .theme
-                        .typingIndicatorTheme
-                        .animatedCirclesColor,
+                    circlesColor: InheritedChatTheme.of(context).theme.typingIndicatorTheme.animatedCirclesColor,
                     animationOffset: _firstCircleOffsetAnimation,
                   ),
                   AnimatedCircles(
-                    circlesColor: InheritedChatTheme.of(context)
-                        .theme
-                        .typingIndicatorTheme
-                        .animatedCirclesColor,
+                    circlesColor: InheritedChatTheme.of(context).theme.typingIndicatorTheme.animatedCirclesColor,
                     animationOffset: _secondCircleOffsetAnimation,
                   ),
                   AnimatedCircles(
-                    circlesColor: InheritedChatTheme.of(context)
-                        .theme
-                        .typingIndicatorTheme
-                        .animatedCirclesColor,
+                    circlesColor: InheritedChatTheme.of(context).theme.typingIndicatorTheme.animatedCirclesColor,
                     animationOffset: _thirdCircleOffsetAnimation,
                   ),
                 ],
               ),
             ),
             widget.bubbleAlignment == BubbleRtlAlignment.right
-                ? Container(
-                    margin: const EdgeInsets.only(left: 12),
-                    child: TypingWidget(
-                      widget: widget,
-                      context: context,
-                      mode: widget.options.typingMode,
+                ? Flexible(
+                    child: Container(
+                      margin: const EdgeInsets.only(left: 12, right: 24),
+                      child: TypingWidget(
+                        widget: widget,
+                        context: context,
+                        options: widget.options,
+                      ),
                     ),
                   )
                 : const SizedBox(),
@@ -213,35 +199,32 @@ class TypingWidget extends StatelessWidget {
     super.key,
     required this.widget,
     required this.context,
-    required this.mode,
+    required this.options,
   });
 
   final TypingIndicator widget;
   final BuildContext context;
-  final TypingIndicatorMode mode;
+  final TypingIndicatorOptions options;
 
   @override
   Widget build(BuildContext context) {
-    final sWidth = _getStackingWidth(
-      widget.options.typingUsers,
-      MediaQuery.of(context).size.width,
-    );
-    if (mode == TypingIndicatorMode.name) {
-      return SizedBox(
+    final sWidth = _getStackingWidth(widget.options.typingUsers);
+    if (options.typingMode == TypingIndicatorMode.name) {
+      return Flexible(
         child: Text(
           _multiUserTextBuilder(widget.options.typingUsers),
-          style: InheritedChatTheme.of(context)
-              .theme
-              .typingIndicatorTheme
-              .multipleUserTextStyle,
+          style: InheritedChatTheme.of(context).theme.typingIndicatorTheme.multipleUserTextStyle,
+          maxLines: 3,
+          overflow: TextOverflow.ellipsis,
         ),
       );
-    } else if (mode == TypingIndicatorMode.avatar) {
+    } else if (options.typingMode == TypingIndicatorMode.avatar) {
       return SizedBox(
         width: sWidth,
         child: AvatarHandler(
           context: context,
           author: widget.options.typingUsers,
+          avatarBuilder: options.avatarBuilder,
         ),
       );
     } else {
@@ -252,15 +235,17 @@ class TypingWidget extends StatelessWidget {
             child: AvatarHandler(
               context: context,
               author: widget.options.typingUsers,
+              avatarBuilder: options.avatarBuilder,
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            _multiUserTextBuilder(widget.options.typingUsers),
-            style: InheritedChatTheme.of(context)
-                .theme
-                .typingIndicatorTheme
-                .multipleUserTextStyle,
+          Flexible(
+            child: Text(
+              _multiUserTextBuilder(widget.options.typingUsers),
+              style: InheritedChatTheme.of(context).theme.typingIndicatorTheme.multipleUserTextStyle,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+            ),
           ),
         ],
       );
@@ -272,22 +257,26 @@ class TypingWidget extends StatelessWidget {
     if (author.isEmpty) {
       return '';
     } else if (author.length == 1) {
-      return '${author.first.firstName} is typing';
+      return options.oneUserTypingText != null ? options.oneUserTypingText!(author.first) : '${author.first.firstName} is typing';
     } else if (author.length == 2) {
-      return '${author.first.firstName} and ${author[1].firstName}';
+      return options.twoUsersTypingText != null
+          ? options.twoUsersTypingText!(author.first, author[1])
+          : '${author.first.firstName} and ${author[1].firstName}';
     } else {
-      return '${author.first.firstName} and ${author.length - 1} others';
+      return options.othersTypingText != null
+          ? options.othersTypingText!(author.first, author.length - 1)
+          : '${author.first.firstName} and ${author.length - 1} others';
     }
   }
 
   /// Used to specify width of stacking avatars based on number of authors.
-  double _getStackingWidth(List<types.User> author, double indicatorWidth) {
+  double _getStackingWidth(List<types.User> author) {
     if (author.length == 1) {
-      return indicatorWidth * 0.06;
+      return 26; // Depends on avatar radius.
     } else if (author.length == 2) {
-      return indicatorWidth * 0.11;
+      return 42;
     } else {
-      return indicatorWidth * 0.15;
+      return 58;
     }
   }
 }
@@ -298,10 +287,12 @@ class AvatarHandler extends StatelessWidget {
     super.key,
     required this.context,
     required this.author,
+    this.avatarBuilder,
   });
 
   final BuildContext context;
   final List<types.User> author;
+  final Widget Function(types.User)? avatarBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -310,50 +301,42 @@ class AvatarHandler extends StatelessWidget {
     } else if (author.length == 1) {
       return Align(
         alignment: Alignment.centerLeft,
-        child: TypingAvatar(context: context, author: author.first),
+        child: avatarBuilder != null ? avatarBuilder!(author.first) : TypingAvatar(context: context, author: author.first),
       );
     } else if (author.length == 2) {
       return Stack(
         children: <Widget>[
-          TypingAvatar(context: context, author: author.first),
+          avatarBuilder != null ? avatarBuilder!(author.first) : TypingAvatar(context: context, author: author.first),
           Positioned(
             left: 16,
-            child: TypingAvatar(context: context, author: author[1]),
+            child: avatarBuilder != null ? avatarBuilder!(author[1]) : TypingAvatar(context: context, author: author[1]),
           ),
         ],
       );
     } else {
-      return SizedBox(
-        child: Stack(
-          children: <Widget>[
-            TypingAvatar(context: context, author: author.first),
-            Positioned(
-              left: 16,
-              child: TypingAvatar(context: context, author: author[1]),
-            ),
-            Positioned(
-              left: 32,
-              child: CircleAvatar(
-                radius: 13,
-                backgroundColor: InheritedChatTheme.of(context)
-                    .theme
-                    .typingIndicatorTheme
-                    .countAvatarColor,
-                child: Text(
-                  '${author.length - 2}',
-                  style: TextStyle(
-                    color: InheritedChatTheme.of(context)
-                        .theme
-                        .typingIndicatorTheme
-                        .countTextColor,
-                  ),
-                  textAlign: TextAlign.center,
-                  textScaleFactor: 0.7,
+      return Stack(
+        children: <Widget>[
+          avatarBuilder != null ? avatarBuilder!(author.first) : TypingAvatar(context: context, author: author.first),
+          Positioned(
+            left: 16,
+            child: avatarBuilder != null ? avatarBuilder!(author[1]) : TypingAvatar(context: context, author: author[1]),
+          ),
+          Positioned(
+            left: 32,
+            child: CircleAvatar(
+              radius: 13,
+              backgroundColor: InheritedChatTheme.of(context).theme.typingIndicatorTheme.countAvatarColor,
+              child: Text(
+                '+${author.length - 2}',
+                style: TextStyle(
+                  color: InheritedChatTheme.of(context).theme.typingIndicatorTheme.countTextColor,
                 ),
+                textAlign: TextAlign.center,
+                textScaleFactor: 0.7,
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       );
     }
   }
@@ -380,9 +363,7 @@ class TypingAvatar extends StatelessWidget {
     final initials = getUserInitials(author);
 
     return CircleAvatar(
-      backgroundColor: hasImage
-          ? InheritedChatTheme.of(context).theme.userAvatarImageBackgroundColor
-          : color,
+      backgroundColor: hasImage ? InheritedChatTheme.of(context).theme.userAvatarImageBackgroundColor : color,
       backgroundImage: hasImage ? NetworkImage(author.imageUrl!) : null,
       radius: 13,
       child: !hasImage
@@ -410,14 +391,8 @@ class AnimatedCircles extends StatelessWidget {
   Widget build(BuildContext context) => SlideTransition(
         position: animationOffset,
         child: Container(
-          height: InheritedChatTheme.of(context)
-              .theme
-              .typingIndicatorTheme
-              .animatedCircleSize,
-          width: InheritedChatTheme.of(context)
-              .theme
-              .typingIndicatorTheme
-              .animatedCircleSize,
+          height: InheritedChatTheme.of(context).theme.typingIndicatorTheme.animatedCircleSize,
+          width: InheritedChatTheme.of(context).theme.typingIndicatorTheme.animatedCircleSize,
           decoration: BoxDecoration(
             color: circlesColor,
             shape: BoxShape.circle,
@@ -433,6 +408,10 @@ class TypingIndicatorOptions {
     this.customTypingIndicator,
     this.typingMode = TypingIndicatorMode.name,
     this.typingUsers = const [],
+    this.oneUserTypingText,
+    this.twoUsersTypingText,
+    this.othersTypingText,
+    this.avatarBuilder,
   });
 
   /// Animation speed for circles.
@@ -448,6 +427,18 @@ class TypingIndicatorOptions {
   /// Author(s) for [TypingIndicator].
   /// By default its empty list which hides the indicator, see [types.User].
   final List<types.User> typingUsers;
+
+  /// Text used for showing one user is typing.
+  final String Function(types.User)? oneUserTypingText;
+
+  /// Text used for showing two users are typing.
+  final String Function(types.User, types.User)? twoUsersTypingText;
+
+  /// Text used when other users are typing.
+  final String Function(types.User, int)? othersTypingText;
+
+  /// Builder for typing user avatar (which should be a circle widget of radius 13).
+  final Widget Function(types.User)? avatarBuilder;
 }
 
 @immutable
