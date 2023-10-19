@@ -3,6 +3,7 @@ import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:visibility_detector/visibility_detector.dart';
 
 import '../../chat_theme.dart';
+import '../../conditional/conditional.dart';
 import '../../models/bubble_rtl_alignment.dart';
 import '../../models/emoji_enlargement_behavior.dart';
 import '../../util.dart';
@@ -32,6 +33,7 @@ class Message extends StatelessWidget {
     required this.hideBackgroundOnEmojiMessages,
     this.imageHeaders,
     this.imageMessageBuilder,
+    this.imageProviderBuilder,
     required this.message,
     required this.messageWidth,
     this.nameBuilder,
@@ -60,14 +62,14 @@ class Message extends StatelessWidget {
       audioMessageBuilder;
 
   /// This is to allow custom user avatar builder
-  /// By using this we can fetch newest user info based on id
+  /// By using this we can fetch newest user info based on id.
   final Widget Function(String userId)? avatarBuilder;
 
   /// Customize the default bubble using this function. `child` is a content
   /// you should render inside your bubble, `message` is a current message
   /// (contains `author` inside) and `nextMessageInGroup` allows you to see
   /// if the message is a part of a group (messages are grouped when written
-  /// in quick succession by the same author)
+  /// in quick succession by the same author).
   final Widget Function(
     Widget child, {
     required types.Message message,
@@ -105,6 +107,13 @@ class Message extends StatelessWidget {
   final Widget Function(types.ImageMessage, {required int messageWidth})?
       imageMessageBuilder;
 
+  /// See [Chat.imageProviderBuilder].
+  final ImageProvider Function({
+    required String uri,
+    required Map<String, String>? imageHeaders,
+    required Conditional conditional,
+  })? imageProviderBuilder;
+
   /// Any message type.
   final types.Message message;
 
@@ -112,7 +121,7 @@ class Message extends StatelessWidget {
   final int messageWidth;
 
   /// See [TextMessage.nameBuilder].
-  final Widget Function(String userId)? nameBuilder;
+  final Widget Function(types.User)? nameBuilder;
 
   /// See [UserAvatar.onAvatarTap].
   final void Function(types.User)? onAvatarTap;
@@ -174,6 +183,106 @@ class Message extends StatelessWidget {
   /// Build an audio message inside predefined bubble.
   final Widget Function(types.VideoMessage, {required int messageWidth})?
       videoMessageBuilder;
+
+  Widget _avatarBuilder() => showAvatar
+      ? avatarBuilder?.call(message.author.id) ??
+          UserAvatar(
+            author: message.author,
+            bubbleRtlAlignment: bubbleRtlAlignment,
+            imageHeaders: imageHeaders,
+            onAvatarTap: onAvatarTap,
+          )
+      : const SizedBox(width: 40);
+
+  Widget _bubbleBuilder(
+    BuildContext context,
+    BorderRadius borderRadius,
+    bool currentUserIsAuthor,
+    bool enlargeEmojis, {
+    bool isGameBot = false,
+  }) =>
+      bubbleBuilder != null
+          ? bubbleBuilder!(
+              _messageBuilder(isGameBot: isGameBot),
+              message: message,
+              nextMessageInGroup: roundBorder,
+            )
+          : enlargeEmojis && hideBackgroundOnEmojiMessages
+              ? _messageBuilder(isGameBot: isGameBot)
+              : Container(
+                  decoration: BoxDecoration(
+                    borderRadius: borderRadius,
+                    color: !currentUserIsAuthor ||
+                            message.type == types.MessageType.image
+                        ? (isGameBot
+                            ? primary
+                            : InheritedChatTheme.of(context)
+                                .theme
+                                .secondaryColor)
+                        : InheritedChatTheme.of(context).theme.primaryColor,
+                  ),
+                  child: ClipRRect(
+                    borderRadius: borderRadius,
+                    child: _messageBuilder(isGameBot: isGameBot),
+                  ),
+                );
+
+  Widget _messageBuilder({bool isGameBot = false}) {
+    switch (message.type) {
+      case types.MessageType.audio:
+        final audioMessage = message as types.AudioMessage;
+        return audioMessageBuilder != null
+            ? audioMessageBuilder!(audioMessage, messageWidth: messageWidth)
+            : const SizedBox();
+      case types.MessageType.custom:
+        final customMessage = message as types.CustomMessage;
+        return customMessageBuilder != null
+            ? customMessageBuilder!(customMessage, messageWidth: messageWidth)
+            : const SizedBox();
+      case types.MessageType.file:
+        final fileMessage = message as types.FileMessage;
+        return fileMessageBuilder != null
+            ? fileMessageBuilder!(fileMessage, messageWidth: messageWidth)
+            : FileMessage(message: fileMessage);
+      case types.MessageType.image:
+        final imageMessage = message as types.ImageMessage;
+        return imageMessageBuilder != null
+            ? imageMessageBuilder!(imageMessage, messageWidth: messageWidth)
+            : ImageMessage(
+                imageHeaders: imageHeaders,
+                imageProviderBuilder: imageProviderBuilder,
+                message: imageMessage,
+                messageWidth: messageWidth,
+              );
+      case types.MessageType.text:
+        final textMessage = message as types.TextMessage;
+        return textMessageBuilder != null
+            ? textMessageBuilder!(
+                textMessage,
+                messageWidth: messageWidth,
+                showName: showName,
+              )
+            : TextMessage(
+                emojiEnlargementBehavior: emojiEnlargementBehavior,
+                hideBackgroundOnEmojiMessages: hideBackgroundOnEmojiMessages,
+                message: textMessage,
+                nameBuilder: nameBuilder,
+                onPreviewDataFetched: onPreviewDataFetched,
+                options: textMessageOptions,
+                showName: showName,
+                usePreviewData: usePreviewData,
+                userAgent: userAgent,
+                isGameBot: isGameBot,
+              );
+      case types.MessageType.video:
+        final videoMessage = message as types.VideoMessage;
+        return videoMessageBuilder != null
+            ? videoMessageBuilder!(videoMessage, messageWidth: messageWidth)
+            : const SizedBox();
+      default:
+        return const SizedBox();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,104 +403,5 @@ class Message extends StatelessWidget {
         ],
       ),
     );
-  }
-
-  Widget _avatarBuilder() => showAvatar
-      ? avatarBuilder?.call(message.author.id) ??
-          UserAvatar(
-            author: message.author,
-            bubbleRtlAlignment: bubbleRtlAlignment,
-            imageHeaders: imageHeaders,
-            onAvatarTap: onAvatarTap,
-          )
-      : const SizedBox(width: 40);
-
-  Widget _bubbleBuilder(
-    BuildContext context,
-    BorderRadius borderRadius,
-    bool currentUserIsAuthor,
-    bool enlargeEmojis, {
-    bool isGameBot = false,
-  }) =>
-      bubbleBuilder != null
-          ? bubbleBuilder!(
-              _messageBuilder(isGameBot: isGameBot),
-              message: message,
-              nextMessageInGroup: roundBorder,
-            )
-          : enlargeEmojis && hideBackgroundOnEmojiMessages
-              ? _messageBuilder(isGameBot: isGameBot)
-              : Container(
-                  decoration: BoxDecoration(
-                    borderRadius: borderRadius,
-                    color: !currentUserIsAuthor ||
-                            message.type == types.MessageType.image
-                        ? (isGameBot
-                            ? primary
-                            : InheritedChatTheme.of(context)
-                                .theme
-                                .secondaryColor)
-                        : InheritedChatTheme.of(context).theme.primaryColor,
-                  ),
-                  child: ClipRRect(
-                    borderRadius: borderRadius,
-                    child: _messageBuilder(isGameBot: isGameBot),
-                  ),
-                );
-
-  Widget _messageBuilder({bool isGameBot = false}) {
-    switch (message.type) {
-      case types.MessageType.audio:
-        final audioMessage = message as types.AudioMessage;
-        return audioMessageBuilder != null
-            ? audioMessageBuilder!(audioMessage, messageWidth: messageWidth)
-            : const SizedBox();
-      case types.MessageType.custom:
-        final customMessage = message as types.CustomMessage;
-        return customMessageBuilder != null
-            ? customMessageBuilder!(customMessage, messageWidth: messageWidth)
-            : const SizedBox();
-      case types.MessageType.file:
-        final fileMessage = message as types.FileMessage;
-        return fileMessageBuilder != null
-            ? fileMessageBuilder!(fileMessage, messageWidth: messageWidth)
-            : FileMessage(message: fileMessage);
-      case types.MessageType.image:
-        final imageMessage = message as types.ImageMessage;
-        return imageMessageBuilder != null
-            ? imageMessageBuilder!(imageMessage, messageWidth: messageWidth)
-            : ImageMessage(
-                imageHeaders: imageHeaders,
-                message: imageMessage,
-                messageWidth: messageWidth,
-              );
-      case types.MessageType.text:
-        final textMessage = message as types.TextMessage;
-        return textMessageBuilder != null
-            ? textMessageBuilder!(
-                textMessage,
-                messageWidth: messageWidth,
-                showName: showName,
-              )
-            : TextMessage(
-                emojiEnlargementBehavior: emojiEnlargementBehavior,
-                hideBackgroundOnEmojiMessages: hideBackgroundOnEmojiMessages,
-                message: textMessage,
-                nameBuilder: nameBuilder,
-                onPreviewDataFetched: onPreviewDataFetched,
-                options: textMessageOptions,
-                showName: showName,
-                usePreviewData: usePreviewData,
-                userAgent: userAgent,
-                isGameBot: isGameBot,
-              );
-      case types.MessageType.video:
-        final videoMessage = message as types.VideoMessage;
-        return videoMessageBuilder != null
-            ? videoMessageBuilder!(videoMessage, messageWidth: messageWidth)
-            : const SizedBox();
-      default:
-        return const SizedBox();
-    }
   }
 }

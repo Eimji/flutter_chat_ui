@@ -80,6 +80,35 @@ class _TypingIndicatorState extends State<TypingIndicator>
     }
   }
 
+  /// Handler for circles offset.
+  Animation<Offset> _circleOffset(
+    Offset? start,
+    Offset? end,
+    Interval animationInterval,
+  ) =>
+      TweenSequence<Offset>(
+        <TweenSequenceItem<Offset>>[
+          TweenSequenceItem<Offset>(
+            tween: Tween<Offset>(
+              begin: start,
+              end: end,
+            ),
+            weight: 50.0,
+          ),
+          TweenSequenceItem<Offset>(
+            tween: Tween<Offset>(
+              begin: end,
+              end: start,
+            ),
+            weight: 50.0,
+          ),
+        ],
+      ).animate(CurvedAnimation(
+        parent: _animatedCirclesController,
+        curve: animationInterval,
+        reverseCurve: animationInterval,
+      ));
+
   @override
   void didUpdateWidget(TypingIndicator oldWidget) {
     super.didUpdateWidget(oldWidget);
@@ -180,35 +209,6 @@ class _TypingIndicatorState extends State<TypingIndicator>
           ],
         ),
       );
-
-  /// Handler for circles offset.
-  Animation<Offset> _circleOffset(
-    Offset? start,
-    Offset? end,
-    Interval animationInterval,
-  ) =>
-      TweenSequence<Offset>(
-        <TweenSequenceItem<Offset>>[
-          TweenSequenceItem<Offset>(
-            tween: Tween<Offset>(
-              begin: start,
-              end: end,
-            ),
-            weight: 50.0,
-          ),
-          TweenSequenceItem<Offset>(
-            tween: Tween<Offset>(
-              begin: end,
-              end: start,
-            ),
-            weight: 50.0,
-          ),
-        ],
-      ).animate(CurvedAnimation(
-        parent: _animatedCirclesController,
-        curve: animationInterval,
-        reverseCurve: animationInterval,
-      ));
 }
 
 /// Typing Widget.
@@ -223,6 +223,36 @@ class TypingWidget extends StatelessWidget {
   final TypingIndicator widget;
   final BuildContext context;
   final TypingIndicatorOptions options;
+
+  /// Handler for multi user typing text.
+  String _multiUserTextBuilder(List<types.User> author) {
+    if (author.isEmpty) {
+      return '';
+    } else if (author.length == 1) {
+      return options.oneUserTypingText != null
+          ? options.oneUserTypingText!(author.first)
+          : '${author.first.firstName} is typing';
+    } else if (author.length == 2) {
+      return options.twoUsersTypingText != null
+          ? options.twoUsersTypingText!(author.first, author[1])
+          : '${author.first.firstName} and ${author[1].firstName}';
+    } else {
+      return options.othersTypingText != null
+          ? options.othersTypingText!(author.first, author.length - 1)
+          : '${author.first.firstName} and ${author.length - 1} others';
+    }
+  }
+
+  /// Used to specify width of stacking avatars based on number of authors.
+  double _getStackingWidth(List<types.User> author) {
+    if (author.length == 1) {
+      return 26; // Depends on avatar radius.
+    } else if (author.length == 2) {
+      return 42;
+    } else {
+      return 58;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -273,36 +303,6 @@ class TypingWidget extends StatelessWidget {
           ),
         ],
       );
-    }
-  }
-
-  /// Handler for multi user typing text.
-  String _multiUserTextBuilder(List<types.User> author) {
-    if (author.isEmpty) {
-      return '';
-    } else if (author.length == 1) {
-      return options.oneUserTypingText != null
-          ? options.oneUserTypingText!(author.first)
-          : '${author.first.firstName} is typing';
-    } else if (author.length == 2) {
-      return options.twoUsersTypingText != null
-          ? options.twoUsersTypingText!(author.first, author[1])
-          : '${author.first.firstName} and ${author[1].firstName}';
-    } else {
-      return options.othersTypingText != null
-          ? options.othersTypingText!(author.first, author.length - 1)
-          : '${author.first.firstName} and ${author.length - 1} others';
-    }
-  }
-
-  /// Used to specify width of stacking avatars based on number of authors.
-  double _getStackingWidth(List<types.User> author) {
-    if (author.length == 1) {
-      return 26; // Depends on avatar radius.
-    } else if (author.length == 2) {
-      return 42;
-    } else {
-      return 58;
     }
   }
 }

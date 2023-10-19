@@ -90,28 +90,6 @@ class _InputState extends State<Input> {
     _handleSendButtonVisibilityModeChange();
   }
 
-  @override
-  void didUpdateWidget(covariant Input oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (widget.options.sendButtonVisibilityMode !=
-        oldWidget.options.sendButtonVisibilityMode) {
-      _handleSendButtonVisibilityModeChange();
-    }
-  }
-
-  @override
-  void dispose() {
-    _inputFocusNode.dispose();
-    _textController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-        onTap: () => _inputFocusNode.requestFocus(),
-        child: _inputBuilder(),
-      );
-
   void _handleSendButtonVisibilityModeChange() {
     _textController.removeListener(_handleTextControllerChange);
     if (widget.options.sendButtonVisibilityMode ==
@@ -186,7 +164,7 @@ class _InputState extends State<Input> {
         );
 
     return Focus(
-      autofocus: true,
+      autofocus: !widget.options.autofocus,
       child: Padding(
         padding: InheritedChatTheme.of(context).theme.inputMargin,
         child: Row(
@@ -298,6 +276,28 @@ class _InputState extends State<Input> {
       ),
     );
   }
+
+  @override
+  void didUpdateWidget(covariant Input oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.options.sendButtonVisibilityMode !=
+        oldWidget.options.sendButtonVisibilityMode) {
+      _handleSendButtonVisibilityModeChange();
+    }
+  }
+
+  @override
+  void dispose() {
+    _inputFocusNode.dispose();
+    _textController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+        onTap: () => _inputFocusNode.requestFocus(),
+        child: _inputBuilder(),
+      );
 }
 
 @immutable
@@ -310,6 +310,7 @@ class InputOptions {
     this.sendButtonVisibilityMode = SendButtonVisibilityMode.editing,
     this.textEditingController,
     this.autocorrect = true,
+    this.autofocus = false,
     this.enableSuggestions = true,
     this.enabled = true,
   });
@@ -341,6 +342,9 @@ class InputOptions {
 
   /// Controls the [TextInput] autocorrect behavior. Defaults to [true].
   final bool autocorrect;
+
+  /// Whether [TextInput] should have focus. Defaults to [false].
+  final bool autofocus;
 
   /// Controls the [TextInput] enableSuggestions behavior. Defaults to [true].
   final bool enableSuggestions;
